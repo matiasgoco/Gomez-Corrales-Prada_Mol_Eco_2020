@@ -1,0 +1,136 @@
+---
+title: "SNAPP & RAxML-NG"
+author: "Matias Gomez"
+date: "5/22/2020"
+output: md_document
+---
+
+## SNAPP with Beast2: install Beast2 (https://www.beast2.org/beast-v2-0-readme-file/)
+## Install packages needed to run SNAPP in Beast2 
+## https://www.beast2.org/managing-packages/
+
+## For computers without GUI, like high performance clusters, packages can be managed through the command line. An application called ‘packagemanager’ is part of the Linux distribution of BEAST, and has the following options: 
+
+## Usage: packagemanager [-list] [-add <NAME>] [-del <NAME>] [-useAppDir] [-dir <DIR>] [-help] 
+##   -list List available packages
+##   -add Install the <NAME> package 
+##   -del Uninstall the <NAME> package 
+##   -useAppDir Use application (system wide) installation directory. Note this requires writing rights to the application directory. If not specified, the user's BEAST directory will be used.
+##   -dir Install/uninstall package in direcotry <DIR>. This overrides the useAppDir option
+##   -help Show help
+
+```{bash  eval = FALSE}
+packagemanager -list
+packagemanager -add SNAPP
+packagemanager -add  MODEL_SELECTION
+```
+
+## We need our SNPS data in a NEXUS format
+## Convert vcf to Nexus with PGDSpider standalone first. The nexus format must be in a binary one.
+
+## I need to pick four samples per group based on the clusters formed. I also need to consider samples without missing info
+
+## Explore by plotting the missing percentage of info  in the vcf 
+
+## Preliminary runs
+## After having converted the VCF file to nexus (binary) in PGDSpider, I edited the file on beauti following the Bayes Factor Delimitation tutorial (available on the beast website).
+
+## 6.4 Running the XML file with BEAST (Species Trees and Species Delimitation with SNAPP: A Tutorial and Worked Example)
+## Step 12: You can execute the XML file in BEAST using the GUI or the command line. If you are using Mac OSX or Windows, you should be able to launch the BEAST GUI by double clicking on the application icon. After the BEAST window appears, click the Choose File... button, and select the XML file you just created (Figure 12). Increase the Thread pool size to speed up your analysis. Running SNAPP with multiple threads can increase speeds, but experimenting with the number of threads is required to get the best performance.
+## Click Run. The analysis should take about 10 minutes. You can also run BEAST from the command line. Open the Terminal Application and navigate to the folder containing your runA.xml file. To execute the file, type the following at the command line:
+## /path/to/BEASTv2.4.1/bin/beast -threads 8 runA.xml or beast -threads 8 runA.xml. If you have already moved the BEAST executable to your path. Caution: setting the number of threads beyond the maximum number available on your computer can have serious drawbacks, and you will probably not have enough memory to support all of those separate analyses.
+
+## Make a working directory and a subfolder for each model. 
+
+## I am now going to run Beast with the following parameters:
+## MCMC length = 1,000,000, pre-burnin = 1000, samplefreq = 1000 
+## First you have to modify every xml file to set the aforementioned parameters:
+
+## chainLength="1000000" 
+## storeEvery="1000"
+## preBurnin="1000" 
+## logEvery="1000"
+
+## RunA: 2 species
+```{bash eval=FALSE}
+beast -threads 6 SNAPP/RunA/RunA.xml
+
+```
+
+## disable terminal input and output.
+
+## To do this:
+## Press control and Z simultaneously
+## Type 'bg' without the quotes and press enter
+## Type 'disown -h' again without the quotes and press enter
+
+## This RunB:3 species 
+```{bash eval=FALSE}
+beast -threads 6 SNAPP/RunB/RunB.xml 
+
+```
+
+## disable terminal input and output.
+## To do this:
+## Press control and Z simultaneously
+## Type 'bg' without the quotes and press enter
+## Type 'disown -h' again without the quotes and press enter
+
+
+
+## disable terminal input and output.
+## To do this:
+## Press control and Z simultaneously
+## Type 'bg' without the quotes and press enter
+## Type 'disown -h' again without the quotes and press enter
+
+## Step 15: After you run each of the alternative species delimitation models you can rank them by their marginal likelihood estimate (MLE). You can also calculate Bayes factors to compare the models. The Bayes factor (BF) is a model selection tool that is simple and well suited for the purposes of comparing species delimitation models. Calculating the BF between models is simple. To do so, simply subtract the MLE values for two models, and then multiply the difference by two (BF = 2 x (model1 - model2).
+## The strength of support from BF comparisons of competing models can be evaluated using the framework of Kass and Raftery (1995). The BF scale is as follows: 0 < BF < 2 is not worth more than a bare mention, 2 < BF < 6 is positive evidence, 6 < BF < 10 is strong support, and BF > 10 is decisive.
+## The results for the seven gecko models are provided in Table 2. The model that lumps the western forests into one species (runB) is the top-ranked model. It has the largest MLE value, and it is supported in favor of the current taxonomy model (runA). The BF in support for model B is decisive compared to model A. It is important to emphasize that these results are tragically deficient in terms of the MCMC analysis. Much, much longer runs are required to obtain stable results.
+
+## RAxML-NG (https://github.com/amkozlov/raxml-ng/wiki/Tutorial)
+## (https://github.com/amkozlov/raxml-ng/wiki/Installation)
+```{bash eval=FALSE}
+ conda install -c bioconda raxml-ng 
+```
+
+
+## RAxML tree
+
+## Convert vcf to Phylip format using PGDSpider standalone
+
+```{bash eval=FALSE}
+raxml-ng-mpi --all --msa infile --model GTR
+
+RAxML-NG v. 0.9.0git released on 26.11.2019 by The Exelixis Lab.
+Developed by: Alexey M. Kozlov and Alexandros Stamatakis.
+Contributors: Diego Darriba, Tomas Flouri, Benoit Morel, Sarah Lutteropp, Ben Bettisworth.
+Latest version: https://github.com/amkozlov/raxml-ng
+Questions/problems/suggestions? Please visit: https://groups.google.com/forum/#!forum/raxml
+
+RAxML-NG was called at 21-Jul-2020 16:02:23 as follows:
+
+raxml-ng-mpi --all --msa infile --model GTR
+
+Analysis options:
+  run mode: ML tree search + bootstrapping (Felsenstein Bootstrap)
+  start tree(s): random (10) + parsimony (10)
+  bootstrap replicates: max: 1000 + bootstopping (autoMRE, cutoff: 0.030000)
+  random seed: 1595372543
+  tip-inner: OFF
+  pattern compression: ON
+  per-rate scalers: OFF
+  site repeats: ON
+  branch lengths: proportional (ML estimate, algorithm: NR-FAST)
+  SIMD kernels: AVX2
+  parallelization: MPI (8 ranks)
+
+[00:00:00] Reading alignment from file: infile
+[00:00:00] Loaded alignment with 35 taxa and 3560 sites
+
+Alignment comprises 1 partitions and 3463 patterns
+```
+
+
+
+
